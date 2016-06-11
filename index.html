@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>KJBoleto</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row no-print">
+        <div class="col-lg-12">
+          <div class="jumbotron">
+            <h1>KJBoleto</h1>
+            <p>Gere de graça seu boleto bancário.</p>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">Formulário de emissão de boleto</div>
+              <div class="panel-body">
+                <form id="boletoForm">
+                  <div class="form-group">
+                    <label for="bancoInput">Banco</label>
+                    <select id="bancoInput" class="form-control">
+                      <option value="santander">Santander</option>
+                      <option value="bradesco">Bradesco</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="dataEmissaoInput">Data de Emissão</label>
+                    <input id="dataEmissaoInput" class="form-control" type="text" disabled>
+                  </div>
+                  <div class="form-group">
+                    <label for="dataVencimentoInput">Data de Vencimento</label>
+                    <input id="dataVencimentoInput" class="form-control" type="text" disabled>
+                  </div>
+                  <div class="form-group">
+                    <label for="valorInput">Valor em centavos</label>
+                    <input id="valorInput" class="form-control" type="number" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="nossoNumeroInput">Nosso Número</label>
+                    <input id="nossoNumeroInput" class="form-control" type="text" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="numeroDocumentoInput">Número Documento</label>
+                    <input id="numeroDocumentoInput" class="form-control" type="text" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="cedenteInput">Cedente</label>
+                    <input id="cedenteInput" class="form-control" type="text" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="cedenteCnpjInput">Cedente CNPJ</label>
+                    <input id="cedenteCnpjInput" class="form-control" type="text" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="agenciaInput">Agência</label>
+                    <input id="agenciaInput" class="form-control" type="text" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="codigoCedenteInput">Código Cedente</label>
+                    <input id="codigoCedenteInput" class="form-control" type="text" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="carteiraInput">Carteira</label>
+                    <input id="carteiraInput" class="form-control" type="text" required>
+                  </div>
+                  <button type="submit" class="btn btn-success">Gerar Boleto</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-12">
+          <div id="boleto">
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-2.2.4.js" integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+    // carregando as datas
+    $("#dataEmissaoInput").val(new Date());
+    $("#dataVencimentoInput").val(new Date(new Date().getTime() + 5 * 24 * 3600 * 1000));
+
+    $("#boletoForm").submit(function(event) {
+      event.preventDefault();
+
+      $("#boleto").empty();
+      $("#boleto").removeClass("hidden");
+
+      var banco            =  $("#bancoInput").val();
+      var data_emissao     =  $("#dataEmissaoInput").val();
+      var data_vencimento  =  $("#dataVencimentoInput").val();
+      var valor            =  $("#valorInput").val();
+      var nosso_numero     =  $("#nossoNumeroInput").val();
+      var numero_documento =  $("#numeroDocumentoInput").val();
+      var cedente          =  $("#cedenteInput").val();
+      var cedente_cnpj     =  $("#cedenteCnpjInput").val();
+      var agencia          =  $("#agenciaInput").val();
+      var codigo_cedente   =  $("#codigoCedenteInput").val();
+      var carteira         =  $("#carteiraInput").val();
+
+      var boleto = {
+        'banco': banco, // nome do banco dentro da pasta 'banks'
+        'data_emissao': data_emissao,
+        'data_vencimento': data_vencimento, // 5 dias futuramente
+        'valor': valor, // (valor em centavos)
+        'nosso_numero': nosso_numero,
+        'numero_documento': numero_documento,
+        'cedente': cedente,
+        'cedente_cnpj': cedente_cnpj, // sem pontos e traços
+        'agencia': agencia,
+        'codigo_cedente': codigo_cedente, // PSK (código da carteira)
+        'carteira': carteira
+      };
+
+      $.post("http//localhost:3003/gerarBoleto", boleto).done(function(response) {
+        $("#boleto").html(response.boletoHTML);
+        $("#boleto .no-print").click();
+        $("#boleto").addClass("hidden");
+      });
+
+    });
+    </script>
+  </body>
+</html>
